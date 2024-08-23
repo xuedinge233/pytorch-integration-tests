@@ -39,5 +39,5 @@ If you encounter any issues while using the workflows or integrating a device, p
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under BSD-3-Clause license. See the [LICENSE](LICENSE) file for more details.
 
