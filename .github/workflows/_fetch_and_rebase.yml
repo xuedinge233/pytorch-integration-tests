@@ -19,12 +19,12 @@ jobs:
       - name: Pull latest codes for torch
         uses: ascend/pytorch/.github/actions/fetch-and-rebase@master
         with:
-          repo_path: /root/codes/pytorch/pytorch
+          repo_path: /home/runner/actions-runner/codes/pytorch/pytorch
           remote_branch: upstream/main
           loop: ${{ inputs.loop }}
       - name: Pull latest codes for torch_npu
         uses: ascend/pytorch/.github/actions/fetch-and-rebase@master
         with:
-          repo_path: /root/codes/npu/pytorch
+          repo_path: /home/runner/actions-runner/codes/npu/pytorch
           remote_branch: upstream/master
           loop: ${{ inputs.loop }}
