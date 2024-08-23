@@ -17,13 +17,13 @@ jobs:
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Pull latest codes for torch
-        uses: ascend/pytorch/.github/actions/fetch-and-rebase@master
+        uses: cosdt/pytorch-integration-tests/.github/actions/fetch-and-rebase@main
         with:
           repo_path: /home/runner/actions-runner/codes/pytorch/pytorch
           remote_branch: upstream/main
           loop: ${{ inputs.loop }}
       - name: Pull latest codes for torch_npu
-        uses: ascend/pytorch/.github/actions/fetch-and-rebase@master
+        uses: cosdt/pytorch-integration-tests/.github/actions/fetch-and-rebase@main
         with:
           repo_path: /home/runner/actions-runner/codes/npu/pytorch
           remote_branch: upstream/master
