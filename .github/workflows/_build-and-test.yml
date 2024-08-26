@@ -31,7 +31,7 @@ jobs:
         - /usr/local/bin/npu-smi:/usr/local/bin/npu-smi
         - /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/
         - /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info
-        - /root/codes/:/root/codes
+        - /home/runner/actions-runner/codes:/root/codes
       options: --network host ${{ inputs.devices }} --device /dev/davinci_manager --device /dev/devmm_svm --device /dev/hisi_hdc
     steps:
       - name: Set environment
@@ -51,7 +51,7 @@ jobs:
       - name: Compile and install torch_npu
         working-directory: /root/build/npu/pytorch
         run: |
-          pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+          grep -v 'torch' requirements.txt | pip install -r /dev/stdin -i https://pypi.tuna.tsinghua.edu.cn/simple
           bash ci/build.sh --python=3.8
           pip3 install dist/torch_npu*.whl
       - name: Do the test
