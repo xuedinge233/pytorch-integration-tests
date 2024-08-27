@@ -40,18 +40,18 @@ jobs:
       - name: Prepare the codes
         run: |
           \cp -rf /root/codes/ /root/build
-      - name: Compile torch
-        working-directory: /root/build/pytorch/pytorch
-        run: |
-          pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-          export _GLIBCXX_USE_CXX11_ABI=0
-          export USE_CUDA=0
-          export USE_XNNPACK=0
-          python setup.py develop
+      #- name: Compile torch
+      #  working-directory: /root/build/pytorch/pytorch
+      #  run: |
+      #    pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+      #    export _GLIBCXX_USE_CXX11_ABI=0
+      #    export USE_CUDA=0
+      #    export USE_XNNPACK=0
+      #    python setup.py develop
       - name: Compile and install torch_npu
         working-directory: /root/build/npu/pytorch
         run: |
-          grep -v 'torch' requirements.txt | pip install -r /dev/stdin -i https://pypi.tuna.tsinghua.edu.cn/simple
+          pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
           bash ci/build.sh --python=3.8
           pip3 install dist/torch_npu*.whl
       - name: Do the test
