@@ -34,9 +34,9 @@ jobs:
         - /home/runner/actions-runner/codes:/root/codes
       options: --network host ${{ inputs.devices }} --device /dev/davinci_manager --device /dev/devmm_svm --device /dev/hisi_hdc
     steps:
-      - name: Set environment
-        run: |
-          source /root/.bashrc && conda activate torch_npu
+      #- name: Set environment
+      #  run: |
+      #    source /root/.bashrc && conda activate torch_npu
       - name: Prepare the codes
         run: |
           \cp -rf /root/codes/ /root/build
