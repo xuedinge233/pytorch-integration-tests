@@ -1,6 +1,3 @@
-# Note:
-# Same runner only needs one job named like .*fetch-and-rebase
-
 name: Ascend NPU Test Suite
 
 on:
@@ -29,6 +26,16 @@ on:
           - npu-arm64
         default: 'self-hosted'
         description: 'The runner selected to run on'
+      image:
+        required: true
+        type: choice
+        options:
+          - ascendai/cann:7.1-openeuler2203sp2
+          - ascendai/cann:8.0.rc2.alpha003-910b-ubuntu22.04-py3.9
+          - ascendai/cann:8.0.rc3.alpha002-910b-ubuntu22.04-py3.9
+          - ascendai/cann:latest
+        default: 'ascendai/cann:latest'
+        description: 'The docker image which will be loaded'
       device:
         required: true
         type: choice
@@ -43,19 +50,10 @@ on:
           - /dev/davinci8
         default: '/dev/davinci6'
         description: 'The device selected to run on'
-      image:
-        required: true
-        type: choice
-        options:
-          - ascendai/cann:7.1-openeuler2203sp2
-          - ascendai/cann:8.0.rc2.alpha003-910b-ubuntu22.04-py3.9
-          - ascendai/cann:8.0.rc3.alpha002-910b-ubuntu22.04-py3.9
-        default: 'ascendai/cann:8.0.rc3.alpha002-910b-ubuntu22.04-py3.9'
-        description: 'The docker image which will be loaded'
 
 # Only cancel the previous runs when triggered by a pull request
 concurrency:
-  group: '${{ github.workflow }}-${{ github.event_name }}'
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -64,8 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       runner: ${{ steps.set-param.outputs.runner }}
-      device: ${{ steps.set-param.outputs.device }}
       image: ${{ steps.set-param.outputs.image }}
+      device: ${{ steps.set-param.outputs.device }}
     steps:
       - name: Set param
         id: set-param
@@ -73,28 +71,25 @@ jobs:
           set -e
           echo "runner=${{ github.event.inputs.runner || 'self-hosted' }}" >> $GITHUB_OUTPUT
           echo "device=${{ github.event.inputs.device || '/dev/davinci6' }}" >> $GITHUB_OUTPUT
-          echo "image=${{ github.event.inputs.image || 'ascendai/cann:8.0.rc3.alpha002-910b-ubuntu22.04-py3.9' }}" >> $GITHUB_OUTPUT
+          echo "image=${{ github.event.inputs.image || 'ascendai/cann:latest' }}" >> $GITHUB_OUTPUT
 
-  fetch-and-rebase:
-    name: Fetch and rebase
-    runs-on: ${{ needs.prepare.outputs.runner }}
+  build:
+    name: Build torch_npu
     needs:
       - prepare
-    steps:
-      - name: Pull latest codes for torch_npu
-        uses: ./.github/actions/fetch-and-rebase
-        with:
-          repo_path: /home/runner/actions-runner/codes/npu/pytorch
-          remote_branch: upstream/master
-          loop: 10
-
-  build-and-test:
-    name: Build and test
-    needs:
-      - prepare
-      - fetch-and-rebase
-    uses: ./.github/workflows/_build-and-test.yml
+    uses: ./.github/workflows/_ascend_npu_build.yml
     with:
       runner: ${{ needs.prepare.outputs.runner }}
-      device: ${{ needs.prepare.outputs.device }}
       image: ${{ needs.prepare.outputs.image }}
+
+  test:
+    name: Test torch_npu
+    needs:
+      - prepare
+      - build
+    uses: ./.github/workflows/_ascend_npu_test.yml
+    with:
+      runner: ${{ needs.prepare.outputs.runner }}
+      image: ${{ needs.prepare.outputs.image }}
+      device: ${{ needs.prepare.outputs.device }}
+      artifact_name: ${{ needs.build.outputs.artifact_name }}
