@@ -100,6 +100,8 @@ jobs:
         run: |
           pip install -r benchmark/requirements.txt --constraint ascend_npu/requirements.txt "numpy==1.*"
           python benchmark/install.py --userbenchmark test_bench --continue_on_fail
+        env:
+          HF_ENDPOINT: https://hf-mirror.com
 
       - name: Install project dependencies
         run: |
@@ -130,19 +132,26 @@ jobs:
           overwrite: true
 
       - name: Write to workflow job summary
-        id: report
         run: |
-          set -x
-          realpath benchmark/ascend_npu_benchmark.json
-          ls benchmark
-          cat benchmark/ascend_npu_benchmark.json
+          python .ci/benchmark.py --write-gh-job-summary --path benchmark/ascend_npu_benchmark.json
 
-          output_path=$(realpath benchmark/ascend_npu_benchmark.json)
-          python .ci/benchmark.py ${output_path}
-
-      # TODO(shink)
       - name: Update README.md
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+        id: update-readme
         run: |
-          echo "${{ github.event_name }}"
-          echo "${{ github.event_name == 'push' }}"
+          python .ci/benchmark.py --update-readme --path benchmark/ascend_npu_benchmark.json
+          if git diff --quiet README.md; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create a pull request for changes to README.md
+        if: ${{ steps.update-readme.outputs.changed == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: README.md
+          branch: ascend-npu/benchmark
+          title: "[Ascend NPU] Update torchbenchmark report in README.md"
+          commit-message: "Update README.md"
+          reviewers: shink
