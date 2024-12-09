@@ -61,10 +61,11 @@ jobs:
           # TODO: use body-path instead
           body: |
             <!-- ACCELERATOR TESTINFRA START -->
-     
+
             ## Report
-        
+
             - something
             - something else
+            - other things
 
-            <!-- ACCELERATOR TESTINFRA START -->
+            <!-- ACCELERATOR TESTINFRA END -->

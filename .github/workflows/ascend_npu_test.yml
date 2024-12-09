@@ -95,6 +95,7 @@ jobs:
     name: Build torch_npu
     needs:
       - prepare
+    if: ${{ github.event_name == 'repository_dispatch' }}
     uses: ./.github/workflows/_ascend_npu_build.yml
     with:
       runner: ${{ needs.prepare.outputs.runner }}
@@ -130,7 +131,7 @@ jobs:
       pr-token: ${{ secrets.COSDT_BOT_TOKEN }}
 
   pr-comment:
-    name: Run benchmarks
+    name: Comment report on upstream PRs
     needs:
       - prepare
     # if: ${{ github.event_name == 'repository_dispatch' }}
