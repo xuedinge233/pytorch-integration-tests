@@ -105,6 +105,7 @@ jobs:
     needs:
       - prepare
       - build
+    if: ${{ github.event_name == 'repository_dispatch' }}
     uses: ./.github/workflows/_ascend_npu_ut.yml
     with:
       runner: ${{ needs.prepare.outputs.runner }}
@@ -118,11 +119,25 @@ jobs:
       - prepare
       - build
       - test
+    if: ${{ github.event_name == 'repository_dispatch' }}
     uses: ./.github/workflows/_ascend_npu_benchmark.yml
     with:
       runner: ${{ needs.prepare.outputs.runner }}
       image: ${{ needs.prepare.outputs.image }}
       device: ${{ needs.prepare.outputs.device }}
       artifact_name: ${{ needs.build.outputs.artifact_name }}
+    secrets:
+      pr-token: ${{ secrets.COSDT_BOT_TOKEN }}
+
+  pr-comment:
+    name: Run benchmarks
+    needs:
+      - prepare
+    # if: ${{ github.event_name == 'repository_dispatch' }}
+    uses: ./.github/workflows/_pytorch_pr_comment.yml
+    with:
+      repository: cosdt/pytorch-upstream
+      pr-number: 1
+      pr-comment-author: cosdt
     secrets:
       pr-token: ${{ secrets.COSDT_BOT_TOKEN }}
