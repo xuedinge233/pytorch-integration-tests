@@ -1,21 +1,9 @@
 import ast
 import dataclasses
 import json
-import pathlib
-from typing import Dict, List, Optional
 
-
-# Same as torchbenchmark.util.experiment.instantiator.TorchBenchModelConfig
-# https://github.com/pytorch/benchmark/blob/main/torchbenchmark/util/experiment/instantiator.py#L26
-@dataclasses.dataclass
-class TorchBenchModelConfig:
-    name: str
-    test: str
-    device: str
-    batch_size: Optional[int]
-    extra_args: List[str]
-    extra_env: Optional[Dict[str, str]] = None
-    output_dir: Optional[pathlib.Path] = None
+from typing import List
+from torchbenchmark.util.experiment.instantiator import TorchBenchModelConfig
 
 
 @dataclasses.dataclass
