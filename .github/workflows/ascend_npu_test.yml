@@ -139,6 +139,6 @@ jobs:
     with:
       repository: cosdt/pytorch-upstream
       pr-number: 1
-      pr-comment-author: cosdt
+      pr-comment-author: cosdt-bot
     secrets:
       pr-token: ${{ secrets.COSDT_BOT_TOKEN }}
