@@ -38,7 +38,6 @@ jobs:
           issue-number: ${{ inputs.pr-number }}
           comment-author: ${{ inputs.pr-comment-author }}
           body-includes: '<!-- ACCELERATOR TESTINFRA START -->'
-          direction: first
 
       - name: Show comment info
         run: |

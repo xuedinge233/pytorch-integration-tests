@@ -119,6 +119,7 @@ jobs:
       - prepare
       - build
       - test
+    if: ${{ github.event_name == 'repository_dispatch' }}
     uses: ./.github/workflows/_ascend_npu_benchmark.yml
     with:
       runner: ${{ needs.prepare.outputs.runner }}
