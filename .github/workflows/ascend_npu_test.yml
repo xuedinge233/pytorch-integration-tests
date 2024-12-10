@@ -119,7 +119,6 @@ jobs:
       - prepare
       - build
       - test
-    if: ${{ github.event_name == 'repository_dispatch' }}
     uses: ./.github/workflows/_ascend_npu_benchmark.yml
     with:
       runner: ${{ needs.prepare.outputs.runner }}
@@ -133,8 +132,8 @@ jobs:
   pr-comment:
     name: Comment report on upstream PRs
     needs:
-      - prepare
-    # if: ${{ github.event_name == 'repository_dispatch' }}
+      - benchmark
+    if: ${{ github.event_name == 'repository_dispatch' }}
     uses: ./.github/workflows/_pytorch_pr_comment.yml
     with:
       repository: cosdt/pytorch-upstream
