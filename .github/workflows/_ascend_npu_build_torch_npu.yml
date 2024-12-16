@@ -1,4 +1,4 @@
-name: '_ascend_npu_ut'
+name: '_ascend_npu_build'
 
 on:
   workflow_call:
@@ -10,19 +10,15 @@ on:
       image:
         required: true
         type: string
-        description: 'The docker image which will be loaded'
-      device:
-        required: true
-        type: string
-        description: 'The device selected to run on'
+        description: 'The docker image which will be used to build'
       torch-artifact:
         required: false
         type: string
         description: 'The distribution artifact name of torch'
+    outputs:
       torch-npu-artifact:
-        required: true
-        type: string
         description: 'The distribution artifact name of torch_npu'
+        value: ${{ jobs.build.outputs.dist-name }}
 
 # Bash shells do not use ~/.profile or ~/.bashrc so these shells need to be explicitly
 # declared as "shell: bash -el {0}" on steps that need to be properly activated.
@@ -32,33 +28,21 @@ defaults:
     shell: bash -el {0}
 
 jobs:
-  test:
-    name: test torch_npu
+  build:
+    name: build torch_npu
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.image }}
-      volumes:
-        - /usr/local/dcmi:/usr/local/dcmi
-        - /usr/local/bin/npu-smi:/usr/local/bin/npu-smi
-        - /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/
-        - /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info
-        - /etc/ascend_install.info:/etc/ascend_install.info
       options: >-
         --network host
-        --device ${{ inputs.device }}
-        --device /dev/davinci_manager
-        --device /dev/devmm_svm
-        --device /dev/hisi_hdc
       env:
         HTTP_PROXY: http://127.0.0.1:10809
         HTTPS_PROXY: http://127.0.0.1:10809
         ALL_PROXY: socks5://127.0.0.1:10808
         SOCKS_PROXY: socks5://127.0.0.1:10808
+    outputs:
+      dist-name: ${{ steps.list-dist.outputs.dist-name }}
     steps:
-      - name: Show NPU info
-        run: |
-          npu-smi info
-
       - name: Config mirrors
         run: |
           sed -i 's|ports.ubuntu.com|mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list
@@ -85,14 +69,14 @@ jobs:
           # repository: Ascend/pytorch
           repository: shink/torchnpu
           ref: feat/autoload
+          submodules: recursive
           path: torch_npu
 
-      - name: Install pip dependencies
+      - name: Install torch_npu dependencies
         working-directory: torch_npu
         run: |
-          pip install wheel unittest-xml-reporting tabulate
+          pip install wheel
           pip install -r requirements.txt
-          pip install -r test/requirements.txt --no-deps
 
       # TODO
       # - name: Install torch
@@ -112,27 +96,40 @@ jobs:
         run: |
           pip install ${{ inputs.torch-artifact }}
 
-      - name: Download torch_npu artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.torch-npu-artifact }}
-          path: torch_npu
-
-      - name: Install torch_npu
+      - name: List Python version
+        id: list-py-version
         working-directory: torch_npu
         run: |
-          pip install ${{ inputs.torch-npu-artifact }}
+          py_version=$(python --version | awk '{print $2}' | cut -d '.' -f 1,2)
+          echo "py-version=${py_version}" >> $GITHUB_OUTPUT
 
-      - name: Show environment info
+      - name: Build torch_npu
+        working-directory: torch_npu
         run: |
-          npu_is_available=$(python -c "import torch; print(torch.npu.is_available())")
-          npu_count=$(python -c "import torch; print(torch.npu.device_count())")
-          echo "NPU is available: ${npu_is_available}"
-          echo "NPU count: ${npu_count}"
-          pip list | grep -E 'torch|numpy'
+          bash ci/build.sh --python=${{ steps.list-py-version.outputs.py-version }}
 
-      # TODO(shink): Skip
-      - name: Do the test
+      - name: List distribution package
+        id: list-dist
+        working-directory: torch_npu/dist
+        run: |
+          dist_name=$(ls torch_npu*.whl)
+          dist_path=$(pwd)/${dist_name}
+          echo "dist-name=${dist_name}" >> $GITHUB_OUTPUT
+          echo "dist-path=${dist_path}" >> $GITHUB_OUTPUT
+
+      - name: Upload distribution artifact
+        id: upload-dist
         continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.list-dist.outputs.dist-name }}
+          path: ${{ steps.list-dist.outputs.dist-path }}
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+
+      - name: Write to workflow job summary
+        if: ${{ steps.upload-dist.outputs.artifact-url }}
         run: |
-          python torch_npu/ci/access_control_test.py
+          echo "## torch_npu built successfully! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "You can download the distribution package [here](${{ steps.upload-dist.outputs.artifact-url }})." >> $GITHUB_STEP_SUMMARY

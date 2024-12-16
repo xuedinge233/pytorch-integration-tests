@@ -15,10 +15,14 @@ on:
         required: true
         type: string
         description: 'The device selected to run on'
-      artifact_name:
+      torch-artifact:
+        required: false
+        type: string
+        description: 'The distribution artifact name of torch'
+      torch-npu-artifact:
         required: true
         type: string
-        description: 'The torch_npu distribution artifact name'
+        description: 'The distribution artifact name of torch_npu'
     secrets:
       pr-token:
         description: 'A token used to create a pull request'
@@ -87,28 +91,60 @@ jobs:
           repository: pytorch/benchmark
           path: benchmark
 
-      - name: Download ${{ inputs.artifact_name }}
+      # TODO
+      # - name: Install torch
+      #   id: install-torch
+      #   uses: ./.github/actions/install-artifact
+      #   with:
+      #     artifact: ${{ inputs.torch-artifact }}
+
+      - name: Download torch artifact
+        if: ${{ inputs.torch-artifact }}
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact_name }}
+          name: ${{ inputs.torch-artifact }}
+
+      - name: Install torch
+        if: ${{ inputs.torch-artifact }}
+        run: |
+          pip install ${{ inputs.torch-artifact }}
+
+      - name: Install torch_npu dependencies
+        if: ${{ !inputs.torch-artifact }}
+        run: |
+          pip install -r https://raw.githubusercontent.com/Ascend/pytorch/refs/heads/master/requirements.txt
+
+      - name: List torch version
+        id: list-torch-version
+        shell: bash
+        run: |
+          torch_version=$(python -c "import torch; print(torch.__version__)")
+          echo "torch-version=${torch_version}" >> $GITHUB_OUTPUT
+
+      - name: Download torch_npu artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.torch-npu-artifact }}
           path: ascend_npu
 
       - name: Install torch_npu
         working-directory: ascend_npu
         run: |
-          pip install ${{ inputs.artifact_name }}
+          pip install ${{ inputs.torch-npu-artifact }}
 
-      - name: Install torch_npu dependencies
-        working-directory: ascend_npu
-        run: |
-          curl -fsSL -O https://raw.githubusercontent.com/Ascend/pytorch/refs/heads/master/requirements.txt
-          pip install -r requirements.txt
-
-      # TODO: We must use numpy 1.x
       - name: Install benchmark dependencies
         run: |
-          pip install -r benchmark/requirements.txt --constraint ascend_npu/requirements.txt "numpy==1.*"
+          pip install -r benchmark/requirements.txt \
+              torch==${{ steps.list-torch-version.outputs.torch-version }} \
+              numpy==1.*
+
+      - name: Install dependencies for all the models
+        run: |
           python benchmark/install.py --userbenchmark test_bench --continue_on_fail
+
+      - name: Install nightly torchvision and torchaudio
+        run: |
+          pip install --pre torchvision torchaudio --no-deps --index-url https://download.pytorch.org/whl/nightly/cpu
 
       - name: Install project dependencies
         run: |
@@ -128,7 +164,7 @@ jobs:
           python run_benchmark.py test_bench --accuracy --device npu --test eval \
               --output ascend_npu_benchmark.json
 
-      - name: Upload the output file
+      - name: Upload the benchmark report file
         id: upload-output
         uses: actions/upload-artifact@v4
         with:
@@ -136,6 +172,7 @@ jobs:
           path: benchmark/ascend_npu_benchmark.json
           if-no-files-found: error
           retention-days: 1
+          overwrite: true
 
       - name: Write to workflow job summary
         run: |
