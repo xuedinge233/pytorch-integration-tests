@@ -1,0 +1,62 @@
+name: 'Dispatch PyTorch events'
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+
+  workflow_dispatch:
+    inputs:
+      labels:
+        required: false
+        type: string
+        default: ''
+        description: 'The labels on pull requests'
+      hours:
+        required: false
+        type: number
+        default: 24
+        description: 'Pull requests created within this many hours will be listed'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  list-pr:
+    name: List PyTorch pull requests
+    runs-on: ubuntu-latest
+    outputs:
+      prs: ${{ steps.list-pr.outputs.prs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # List PRs created in the past 24 hours
+      - name: List PyTorch PRs
+        id: list-pr
+        uses: ./.github/actions/list-pr
+        with:
+          token: ${{ secrets.COSDT_BOT_TOKEN }}
+          owner: pytorch
+          repository: pytorch
+          labels: ${{ github.event.inputs.labels || '' }}
+          hours: ${{ github.event.inputs.hours || '24' }}
+
+  dispatch-pr:
+    name: 'Dispatch PR event - #${{ matrix.data.pull_request.number }}'
+    runs-on: ubuntu-latest
+    needs:
+      - list-pr
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        data: ${{ fromJson(needs.list-pr.outputs.prs) }}
+    steps:
+      - name: Dispatch PR events to be out-of-tree test infra
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.COSDT_BOT_TOKEN }}
+          repository: cosdt/pytorch-integration-tests
+          event-type: pytorch-pr-event
+          client-payload: ${{ toJson(matrix.data) }}
