@@ -71,7 +71,7 @@ on:
 
 # Only cancel the previous runs when triggered by a pull_request event
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: ${{ github.workflow }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -83,6 +83,7 @@ jobs:
       image: ${{ steps.set-env.outputs.image }}
       device: ${{ steps.set-env.outputs.device }}
       ref: ${{ steps.list-ref.outputs.ref }}
+      pr-number: ${{ steps.list-ref.outputs.pr_number }}
     steps:
       - name: Set environment params
         id: set-env
