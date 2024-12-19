@@ -11,6 +11,10 @@ on:
         required: true
         type: string
         description: 'The docker image which will be used to build'
+      device:
+        required: true
+        type: string
+        description: 'The device selected to run on'
       torch-artifact:
         required: false
         type: string
@@ -33,8 +37,18 @@ jobs:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.image }}
+      volumes:
+        - /usr/local/dcmi:/usr/local/dcmi
+        - /usr/local/bin/npu-smi:/usr/local/bin/npu-smi
+        - /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/
+        - /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info
+        - /etc/ascend_install.info:/etc/ascend_install.info
       options: >-
         --network host
+        --device ${{ inputs.device }}
+        --device /dev/davinci_manager
+        --device /dev/devmm_svm
+        --device /dev/hisi_hdc
       env:
         HTTP_PROXY: http://127.0.0.1:10809
         HTTPS_PROXY: http://127.0.0.1:10809
@@ -117,6 +131,20 @@ jobs:
           echo "dist-name=${dist_name}" >> $GITHUB_OUTPUT
           echo "dist-path=${dist_path}" >> $GITHUB_OUTPUT
 
+      - name: Install torch_npu
+        working-directory: torch_npu/dist
+        run: |
+          pip install ${{ steps.list-dist.outputs.dist-name }}
+
+      - name: List torch_npu version
+        id: list-version
+        run: |
+          torch_version=$(python -c "import torch; print(torch.__version__)")
+          torch_npu_version=$(python -c "import torch_npu; print(torch_npu.__version__)")
+          echo "torch version: ${torch_version}"
+          echo "torch_npu version: ${torch_npu_version}"
+          echo "torch-npu-version=${torch_npu_version}" >> $GITHUB_OUTPUT
+
       - name: Upload distribution artifact
         id: upload-dist
         uses: actions/upload-artifact@v4
@@ -130,5 +158,5 @@ jobs:
       - name: Write to workflow job summary
         if: ${{ steps.upload-dist.outputs.artifact-url }}
         run: |
-          echo "## torch_npu built successfully! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "## torch_npu-${{ steps.list-version.outputs.torch-npu-version }} built successfully! :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "You can download the distribution package [here](${{ steps.upload-dist.outputs.artifact-url }})." >> $GITHUB_STEP_SUMMARY
