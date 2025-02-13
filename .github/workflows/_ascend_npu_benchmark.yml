@@ -127,6 +127,11 @@ jobs:
         run: |
           pip install ${{ inputs.torch-npu-artifact }}
 
+      - name: Install torchvision and torchaudio
+        run: |
+          # pip install --pre torchvision torchaudio --no-deps --index-url https://download.pytorch.org/whl/nightly/cpu
+          pip install --pre torchvision torchaudio --no-deps --index-url https://download.pytorch.org/whl/test/cpu
+
       - name: Install benchmark dependencies
         run: |
           pip install -r benchmark/requirements.txt \
@@ -137,20 +142,13 @@ jobs:
         run: |
           python benchmark/install.py --userbenchmark test_bench --continue_on_fail
 
-      - name: Install nightly torchvision and torchaudio
-        run: |
-          pip install --pre torchvision torchaudio --no-deps --index-url https://download.pytorch.org/whl/nightly/cpu
-
       - name: Install project dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Show environment info
+      - name: List installed python packages
+        if: ${{ always() }}
         run: |
-          npu_is_available=$(python -c "import torch; print(torch.npu.is_available())")
-          npu_count=$(python -c "import torch; print(torch.npu.device_count())")
-          echo "NPU is available: ${npu_is_available}"
-          echo "NPU count: ${npu_count}"
           pip list | grep -E 'torch|numpy'
 
       - name: Run benchmarks
@@ -166,7 +164,7 @@ jobs:
           name: ascend_npu_benchmark.json
           path: benchmark/ascend_npu_benchmark.json
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 3
           overwrite: true
 
       - name: Write to workflow job summary
