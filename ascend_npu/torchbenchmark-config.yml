@@ -7,4 +7,5 @@ models:
 
   - model: yolov3
     skip: true
-extra_args: "--accuracy"
+extra_args:
+  - "--accuracy"
