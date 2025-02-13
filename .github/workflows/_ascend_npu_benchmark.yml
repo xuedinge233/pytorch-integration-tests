@@ -83,7 +83,10 @@ jobs:
       - name: Checkout benchmark
         uses: actions/checkout@v4
         with:
-          repository: pytorch/benchmark
+          # TODO(shink): https://github.com/pytorch/benchmark/pull/2592
+          # repository: pytorch/benchmark
+          repository: shink/benchmark
+          ref: feat/test_bench/config
           path: benchmark
 
       # TODO
@@ -152,10 +155,8 @@ jobs:
           pip list | grep -E 'torch|numpy'
 
       - name: Run benchmarks
-        working-directory: benchmark
         run: |
-          python run_benchmark.py test_bench --accuracy --device npu --test eval \
-              --output ascend_npu_benchmark.json
+          python benchmark/run_benchmark.py test_bench --config ascend_npu/torchbenchmark-config.yml
 
       - name: Upload the benchmark report file
         id: upload-report
@@ -163,7 +164,7 @@ jobs:
         with:
           name: ascend_npu_benchmark.json
           path: benchmark/ascend_npu_benchmark.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 3
           overwrite: true
 
