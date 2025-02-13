@@ -3,8 +3,8 @@ backend_extension: "torch_npu"
 link: https://github.com/Ascend/pytorch
 models:
   - model: BERT_pytorch
-    tests: [ "eval" ]
     batch_size: 1
 
   - model: yolov3
     skip: true
+extra_args: "--accuracy"
