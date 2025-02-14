@@ -156,7 +156,9 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          python benchmark/run_benchmark.py test_bench --config ascend_npu/torchbenchmark-config.yml
+          python benchmark/run_benchmark.py test_bench \
+              --config ascend_npu/torchbenchmark-config.yml \
+              --output ascend_npu_benchmark.json
 
       - name: Upload the benchmark report file
         id: upload-report
