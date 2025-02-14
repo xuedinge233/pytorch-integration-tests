@@ -79,12 +79,15 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          github-server-url: 'https://gh-proxy.test.osinfra.cn/https://github.com'
 
       - name: Checkout benchmark
         uses: actions/checkout@v4
         with:
           # TODO(shink): https://github.com/pytorch/benchmark/pull/2592
           # repository: pytorch/benchmark
+          github-server-url: 'https://gh-proxy.test.osinfra.cn/https://github.com'
           repository: shink/benchmark
           ref: feat/test_bench/config
           path: benchmark
