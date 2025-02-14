@@ -69,13 +69,10 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          github-server-url: 'https://gh-proxy.test.osinfra.cn/https://github.com'
 
       - name: Checkout torch_npu
         uses: actions/checkout@v4
         with:
-          github-server-url: 'https://gh-proxy.test.osinfra.cn/https://github.com'
           repository: Ascend/pytorch
           submodules: recursive
           path: torch_npu

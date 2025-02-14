@@ -62,7 +62,6 @@ jobs:
       - name: Checkout PyTorch
         uses: actions/checkout@v4
         with:
-          github-server-url: 'https://gh-proxy.test.osinfra.cn/https://github.com'
           repository: pytorch/pytorch
           ref: ${{ inputs.ref }}
           submodules: recursive
