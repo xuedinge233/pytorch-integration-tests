@@ -40,17 +40,19 @@ on:
         required: true
         type: choice
         options:
-          - self-hosted
           - npu-arm64
-        default: 'self-hosted'
+          - linux-arm64-npu-0
+          - linux-arm64-npu-1
+          - linux-arm64-npu-2
+          - linux-arm64-npu-4
+        default: 'linux-arm64-npu-1'
         description: 'The runner selected to run on'
       image:
         required: true
         type: choice
         options:
-          - ascendai/cann:7.1-openeuler2203sp2
-          - ascendai/cann:8.0.rc2.alpha003-910b-ubuntu22.04-py3.9
-          - ascendai/cann:8.0.rc3.alpha002-910b-ubuntu22.04-py3.9
+          - ascendai/cann:7.0.1-910b-ubuntu22.04-py3.8
+          - ascendai/cann:8.0.0-910b-ubuntu22.04-py3.10
           - ascendai/cann:latest
         default: 'ascendai/cann:latest'
         description: 'The docker image which will be loaded'
@@ -95,7 +97,7 @@ jobs:
       - name: Set environment params
         id: set-env
         run: |
-          echo "runner=${{ github.event.inputs.runner || 'self-hosted' }}" >> $GITHUB_OUTPUT
+          echo "runner=${{ github.event.inputs.runner || 'linux-arm64-npu-1' }}" >> $GITHUB_OUTPUT
           echo "device=${{ github.event.inputs.device || '/dev/davinci5' }}" >> $GITHUB_OUTPUT
           echo "image=${{ github.event.inputs.image || 'ascendai/cann:latest' }}" >> $GITHUB_OUTPUT
 

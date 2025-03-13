@@ -37,18 +37,6 @@ jobs:
     runs-on: ${{ inputs.runner }}
     container:
       image: ${{ inputs.image }}
-      volumes:
-        - /usr/local/dcmi:/usr/local/dcmi
-        - /usr/local/bin/npu-smi:/usr/local/bin/npu-smi
-        - /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/
-        - /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info
-        - /etc/ascend_install.info:/etc/ascend_install.info
-      options: >-
-        --network host
-        --device ${{ inputs.device }}
-        --device /dev/davinci_manager
-        --device /dev/devmm_svm
-        --device /dev/hisi_hdc
     steps:
       - name: Show NPU info
         run: |
@@ -65,9 +53,11 @@ jobs:
           apt-get install -y git gcc g++ make cmake ninja-build
 
       # See: https://github.com/actions/checkout/issues/363#issuecomment-1915075699
+      # See: https://github.com/hunshcn/gh-proxy/issues/28#issuecomment-773769630
       - name: Config git
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global url."https://gh-proxy.test.osinfra.cn/https://github.com/".insteadOf https://github.com/
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,11 +65,7 @@ jobs:
       - name: Checkout torch_npu
         uses: actions/checkout@v4
         with:
-          # TODO(shink): Use Ascend/pytorch once this pr merged:
-          # https://gitee.com/ascend/pytorch/pulls/12854
-          # repository: Ascend/pytorch
-          repository: shink/torchnpu
-          ref: feat/autoload
+          repository: Ascend/pytorch
           path: torch_npu
 
       - name: Install pip dependencies
