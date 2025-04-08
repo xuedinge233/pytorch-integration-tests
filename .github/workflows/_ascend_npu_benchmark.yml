@@ -76,6 +76,12 @@ jobs:
           repository: pytorch/benchmark
           path: benchmark
 
+      - name: Checkout benchmark
+        uses: actions/checkout@v4
+        with:
+          repository: Ascend/pytorch
+          path: ascend
+
       # TODO
       # - name: Install torch
       #   id: install-torch
@@ -97,7 +103,7 @@ jobs:
       - name: Install torch_npu dependencies
         if: ${{ !inputs.torch-artifact }}
         run: |
-          pip install --default-timeout=300 -r https://raw.githubusercontent.com/Ascend/pytorch/refs/heads/master/requirements.txt
+          pip install --default-timeout=100 -r ./ascend/requirements.txt
 
       - name: List torch version
         id: list-torch-version
