@@ -97,7 +97,7 @@ jobs:
       - name: Install torch_npu dependencies
         if: ${{ !inputs.torch-artifact }}
         run: |
-          pip install -r https://raw.githubusercontent.com/Ascend/pytorch/refs/heads/master/requirements.txt
+          pip install --default-timeout=300 -r https://raw.githubusercontent.com/Ascend/pytorch/refs/heads/master/requirements.txt
 
       - name: List torch version
         id: list-torch-version
