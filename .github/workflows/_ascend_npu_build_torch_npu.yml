@@ -70,7 +70,7 @@ jobs:
       - name: Install torch_npu dependencies
         working-directory: torch_npu
         run: |
-          pip install wheel
+          pip install =0.45.1
           pip install -r requirements.txt
 
       # TODO
