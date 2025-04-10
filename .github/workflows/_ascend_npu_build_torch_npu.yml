@@ -99,6 +99,9 @@ jobs:
           py_version=$(python --version | awk '{print $2}' | cut -d '.' -f 1,2)
           echo "py-version=${py_version}" >> $GITHUB_OUTPUT
 
+      - name: Sleep
+        run: sleep 3600
+
       - name: Build torch_npu
         working-directory: torch_npu
         run: |
