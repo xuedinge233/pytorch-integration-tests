@@ -83,7 +83,7 @@ jobs:
         run: |
           python setup.py build bdist_wheel
         env:
-          16
+          MAX_JOBS: 16
 
       - name: List distribution package
         id: list-dist
