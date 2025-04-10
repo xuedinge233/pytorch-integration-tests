@@ -98,12 +98,13 @@ jobs:
       - name: Install torch
         if: ${{ inputs.torch-artifact }}
         run: |
-          pip install ${{ inputs.torch-artifact }}
+          export PYTHONPATH=/shared-data:$PYTHONPATH
+          pip install ${{ inputs.torch-artifact }} --target /shared-data
 
       - name: Install torch_npu dependencies
         if: ${{ !inputs.torch-artifact }}
         run: |
-          pip install --default-timeout=100 -r ./ascend/requirements.txt
+          pip install --default-timeout=100 -r ./ascend/requirements.txt --target /shared-data
 
       - name: List torch version
         id: list-torch-version
@@ -121,13 +122,13 @@ jobs:
       - name: Install torch_npu
         working-directory: ascend_npu
         run: |
-          pip install ${{ inputs.torch-npu-artifact }}
+          pip install ${{ inputs.torch-npu-artifact }} --target /shared-data
 
       - name: Install benchmark dependencies
         run: |
           pip install -r benchmark/requirements.txt \
               torch==${{ steps.list-torch-version.outputs.torch-version }} \
-              numpy==1.*
+              numpy==1.* --target /shared-data
 
       - name: Install dependencies for all the models
         run: |
@@ -135,11 +136,11 @@ jobs:
 
       - name: Install nightly torchvision and torchaudio
         run: |
-          pip install --pre torchvision torchaudio --no-deps --index-url https://download.pytorch.org/whl/nightly/cpu
+          pip install --pre torchvision torchaudio --no-deps --index-url https://download.pytorch.org/whl/nightly/cpu --target /shared-data
 
       - name: Install project dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt --target /shared-data
 
       - name: Show environment info
         run: |

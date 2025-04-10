@@ -70,8 +70,9 @@ jobs:
       - name: Install torch_npu dependencies
         working-directory: torch_npu
         run: |
-          pip install wheel==0.45.1
-          pip install -r requirements.txt
+          export PYTHONPATH=/shared-data:$PYTHONPATH
+          pip install wheel==0.45.1 --target /shared-data
+          pip install -r requirements.txt --target /shared-data
 
       # TODO
       # - name: Install torch
@@ -89,7 +90,7 @@ jobs:
       - name: Install torch
         if: ${{ inputs.torch-artifact }}
         run: |
-          pip install ${{ inputs.torch-artifact }}
+          pip install ${{ inputs.torch-artifact }} --target /shared-data
 
       - name: List Python version
         id: list-py-version

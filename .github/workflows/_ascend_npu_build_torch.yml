@@ -75,7 +75,8 @@ jobs:
       - name: Install torch dependencies
         working-directory: pytorch
         run: |
-          pip install -r requirements.txt
+          export PYTHONPATH=/shared-data:$PYTHONPATH
+          pip install -r requirements.txt --target /shared-data
 
       - name: Build torch
         working-directory: pytorch
@@ -96,7 +97,7 @@ jobs:
       - name: Install torch
         working-directory: pytorch/dist
         run: |
-          pip install ${{ steps.list-dist.outputs.dist-name }}
+          pip install ${{ steps.list-dist.outputs.dist-name }} --target /shared-data
 
       - name: List torch version
         id: list-version
