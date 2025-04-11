@@ -1,4 +1,4 @@
-name: 'Ascend NPU Test Suite'
+name: 'download.pytorch.org'
 
 on:
   push:
@@ -31,7 +31,7 @@ on:
     types:
       - 'published'
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '0,30 * * * *'
   repository_dispatch:
     types: [pytorch-pr-event-redispatch]
   workflow_dispatch:
@@ -91,6 +91,25 @@ jobs:
         run: |
           npu-smi info
 
-      - name: Sleep
-        run: sleep 3600
+      - name: Config mirrors
+        run: |
+          sed -i 's|ports.ubuntu.com|mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list
+          pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+              git gcc g++ make cmake ninja-build curl \
+              libgl1 libglib2.0-0 libsndfile1
+
+      # See: https://github.com/actions/checkout/issues/363#issuecomment-1915075699
+      # See: https://github.com/hunshcn/gh-proxy/issues/28#issuecomment-773769630
+      - name: Config git
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global url."https://gh-proxy.test.osinfra.cn/https://github.com/".insteadOf https://github.com/
     
+      - name: Install torch_npu dependencies
+        run: |
+          pip install -r https://raw.githubusercontent.com/Ascend/pytorch/refs/heads/master/requirements.txt
