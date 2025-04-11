@@ -1,4 +1,4 @@
-name: 'download.pytorch.org'
+name: 'Ascend NPU Test Suite'
 
 on:
   push:
