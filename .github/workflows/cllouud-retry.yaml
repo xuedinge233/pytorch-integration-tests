@@ -1,0 +1,19 @@
+name: Retry 
+on:
+  workflow_dispatch:
+jobs:
+  job_0:
+    runs-on: linux-arm64-npu-1
+    container:
+      image: ascendai/cann:latest
+      
+    steps:
+      - name: Show NPU info
+        run: |
+          npu-smi info
+
+      - name: Sleep
+        run: sleep 3600
+
+
+
