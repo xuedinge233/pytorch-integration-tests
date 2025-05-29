@@ -130,11 +130,13 @@ jobs:
           pip list | grep -E 'torch|numpy'
 
       - name: Run torchtitan integration_test
+        working-directory: torchtitan
         run: |
           mkdir artifacts-to-be-uploaded
           npu_count=$(python -c "import torch; print(torch.npu.device_count())")
           python ./tests/integration_tests.py artifacts-to-be-uploaded --ngpu ${npu_count}
 
       - name: Run torchtitan unittest
+        working-directory: torchtitan
         run: |
           pytest ./tests/unit_tests --cov=. --cov-report=xml --durations=20 -vv
