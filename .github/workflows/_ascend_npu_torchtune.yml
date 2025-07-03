@@ -11,10 +11,6 @@ on:
         required: true
         type: string
         description: "The docker image which will be loaded"
-      device:
-        required: true
-        type: string
-        description: "The device selected to run on"
       torch-artifact:
         required: false
         type: string
@@ -23,10 +19,6 @@ on:
         required: true
         type: string
         description: "The distribution artifact name of torch_npu"
-
-defaults:
-  run:
-    shell: bash -el {0}
 
 jobs:
   torchtune:
