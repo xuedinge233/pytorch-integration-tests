@@ -67,12 +67,6 @@ jobs:
         run: |
           pip install -e .
 
-      - name: Download Qwen2.5 model
-        run: |
-          export HF_ENDPOINT=https://hf-mirror.com
-          tune download Qwen/Qwen2.5-0.5B-Instruct \
-            --output-dir /tmp/Qwen2.5-0.5B-Instruct 
-
       - name: Download torch artifact
         if: ${{ inputs.torch-artifact }}
         uses: actions/download-artifact@v4
@@ -109,7 +103,13 @@ jobs:
           
       - name: Show environment info
         run: |
-          pip list          
+          pip list
+          
+      - name: Download Qwen2.5 model
+        run: |
+          export HF_ENDPOINT=https://hf-mirror.com
+          tune download Qwen/Qwen2.5-0.5B-Instruct \
+            --output-dir /tmp/Qwen2.5-0.5B-Instruct 
 
       - name: Run torchtune with lora finetune
         run: |
